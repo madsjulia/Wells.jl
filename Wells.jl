@@ -27,6 +27,38 @@ function Ei(u::Number)
 	end
 end
 
+# The Hantush Function W
+# The function is calculated by logarithmic integration using Simpson's rule
+# source: W.Kinzelbach - Groundwater modelling
+function Whantush( ra::Number, rb::Number )
+        if( ra < 1e-20 )
+                return 2 * K0( rb )
+        end
+        if( ra > 2000.0 )
+                return 0
+        end
+        ug = log( ra )
+        og = 10.0
+        hi = ( og - ug ) / 24
+        sub1 = rb * rb / 4.0
+        sub2 = hi * 2
+        x4 = ug + hi
+        x2 = ug
+        s4 = s2 = 0
+        i = 0
+        while true
+                s4 += exp( - exp( x4 ) - sub1 / exp( x4 ) )
+                x4 += sub2
+                if( i == 10 )
+                        break
+                end
+                x2 += sub2
+                s2 += exp( - exp( x2 ) - sub1 / exp( x2 ) )
+                i++
+        end
+        return hi * ( exp( - exp( ug ) - sub1 / exp( ug ) ) + 4 * s4 + 2 * s2 + exp( - exp( og ) - sub1 / exp( og ) ) ) / 3
+end
+
 function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Q::Number)
 	u = r ^ 2 * S / (4 * T * t)
 	return Q * Ei(u) / (4 * pi * T)
