@@ -22,14 +22,7 @@ function makedrawdownwithzerofluxboundary(drawdown::Function)
 	end
 end
 
-function E1(u::Number)
-	retval = exp(-u) / (u + 1 / (1 + 1 / (u + 2 / (1 + 2 / u))))
-	#println([u, retval])
-	return retval
-end
-
 function Ei(u::Number)
-	#println(u)
 	if( u > 60 || u <= 0 )
 		return 0.0
 	end
@@ -86,13 +79,11 @@ function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Qt::Matrix)
 	Q = Qt[1, 1:end]
 	Qtime = Qt[2, 1:end]
 	i = 1
-	#println(size(Qtime))
 	while i <= size(Qtime)[2] && t > Qtime[i]
 		dd += theisdrawdown(t - Qtime[i], r, T, S, Q[i] - Qprev)
 		Qprev = Q[i]
 		i += 1
 	end
-	#println(" done")
 	return dd
 end
 
@@ -119,7 +110,6 @@ function K0(x::Number)
 end
 
 function laplaceavciflow(Qw::Number, K1::Number, K2::Number, L1::Number, L2::Number, Sc1::Number, Sc2::Number, ra::Number, R::Number, omega::Number, deltah::Number, s::Number)
-	bessel1 = 
 	numerator = Qw * K0(R * sqrt(s * Sc2 / K2)) / (2 * pi * K2 * L2) + deltah
 	denominator = s * (omega + K0(ra * sqrt(s * Sc2 / K2)) / (2 * pi * K2 * L2) + K0(ra * sqrt(s * Sc1 / K1)) / (2 * pi * K1 * L1))
 	return numerator / denominator
@@ -157,5 +147,7 @@ function runavcitests()
 		println("$time: $v")
 	end
 end
+
+#runavcitests()
 
 end
