@@ -4,7 +4,7 @@ using Linv
 
 stehfestcoefficients = Linv.getstehfestcoefficients()
 
-function makedrawdownwithzerofluxboundary(drawdown::Function)
+function makedrawdownwithconstantheadboundary(drawdown::Function)
 	return (R::Number, args...)->begin
 		t = args[1]
 		r = args[2]
@@ -13,7 +13,23 @@ function makedrawdownwithzerofluxboundary(drawdown::Function)
 	end
 end
 
+function makedrawdownwithzerofluxboundary(drawdown::Function)
+	return (R::Number, args...)->begin
+		t = args[1]
+		r = args[2]
+		otherargs = args[3:end]
+		return drawdown(t, r, otherargs...) + drawdown(t, R - r, otherargs...)
+	end
+end
+
+function E1(u::Number)
+	retval = exp(-u) / (u + 1 / (1 + 1 / (u + 2 / (1 + 2 / u))))
+	#println([u, retval])
+	return retval
+end
+
 function Ei(u::Number)
+	#println(u)
 	if( u > 60 || u <= 0 )
 		return 0.0
 	end
@@ -32,6 +48,22 @@ function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Q::Number)
 	return Q * Ei(u) / (4 * pi * T)
 end
 
+function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Qt::Matrix)
+	dd = 0.
+	Qprev = 0.
+	Q = Qt[1, 1:end]
+	Qtime = Qt[2, 1:end]
+	i = 1
+	#println(size(Qtime))
+	while i <= size(Qtime)[2] && t > Qtime[i]
+		dd += theisdrawdown(t - Qtime[i], r, T, S, Q[i] - Qprev)
+		Qprev = Q[i]
+		i += 1
+	end
+	#println(" done")
+	return dd
+end
+
 function runtheistests()
 	T = 100
 	S = 0.02
@@ -48,7 +80,7 @@ function runtheistests()
 	end
 end
 
-runtheistests()
+#runtheistests()
 
 function K0(x::Number)
 	return besselyx(0, x)
