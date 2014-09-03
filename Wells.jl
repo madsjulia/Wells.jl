@@ -106,7 +106,7 @@ end
 #runtheistests()
 
 function K0(x::Number)
-	return besselyx(0, x)
+	return besselk(0, x)
 end
 
 function laplaceavciflow(Qw::Number, K1::Number, K2::Number, L1::Number, L2::Number, Sc1::Number, Sc2::Number, ra::Number, R::Number, omega::Number, deltah::Number, s::Number)
@@ -124,7 +124,7 @@ function avciflow(Qw::Number, K1::Number, K2::Number, L1::Number, L2::Number, Sc
 end
 
 function runavcitests()
-	Qw = 10 #m^3/sec
+	Qw = 0 #m^3/sec
 	K1 = 1e-3 #m/sec -- pervious
 	K2 = 1e-5 #m/sec -- semi-pervious
 	L1 = 100 #m
@@ -134,7 +134,7 @@ function runavcitests()
 	ra = .1 #m
 	R = 100 #m
 	omega = 0 #no resistance
-	deltah = -10 #m
+	deltah = -100 #m
 
 	af = makeavciflow(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah)
 
