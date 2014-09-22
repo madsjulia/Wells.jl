@@ -148,7 +148,7 @@ end
 
 #the next three functions give the head buildup in the lower aquifer
 function laplaceavcideltahead2(Qw::Number, K1::Number, K2::Number, L1::Number, L2::Number, Sc1::Number, Sc2::Number, ra::Number, R::Number, omega::Number, deltah::Number, r2::Number, rw::Number, s::Number)
-	return -laplaceavciflow(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah, s) * K0(r2 * sqrt(s * Sc2 / K2)) / (2 * pi * K2 * L2) + Qw * K0(r2 * sqrt(s * Sc2 / K2)) / (2 * pi * K2 * L2 * s)
+	return -laplaceavciflow(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah, s) * K0(r2 * sqrt(s * Sc2 / K2)) / (2 * pi * K2 * L2) + Qw * K0(rw * sqrt(s * Sc2 / K2)) / (2 * pi * K2 * L2 * s)
 end
 
 function makeavcideltahead2(Qw::Number, K1::Number, K2::Number, L1::Number, L2::Number, Sc1::Number, Sc2::Number, ra::Number, R::Number, omega::Number, deltah::Number, r2::Number, rw::Number)
