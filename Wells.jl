@@ -109,6 +109,16 @@ function K0(x::Number)
 	return besselk(0, x)
 end
 
+#avci parameters -- note that 1 refers to the upper aquifer and 2 refers to the lower aquifer
+#K -- Permeability
+#L -- aquifer thickness
+#Sc -- aquifer specific storage coefficient
+#ra -- radius of the leaky well
+#R -- distance from injection well to leaky well
+#omega -- leaky well resistivity
+#deltah = h1 - h2 where h1 is the head in the upper aquifer and h2 is the head in the lower aquifer
+#r1 -- distance from leaky well to observation well in the upper aquifer
+#r2 -- distance from leaky well to observation well in the lower aquifer
 function laplaceavciflow(Qw::Number, K1::Number, K2::Number, L1::Number, L2::Number, Sc1::Number, Sc2::Number, ra::Number, R::Number, omega::Number, deltah::Number, s::Number)
 	numerator = Qw * K0(R * sqrt(s * Sc2 / K2)) / (2 * pi * K2 * L2) + deltah
 	denominator = s * (omega + K0(ra * sqrt(s * Sc2 / K2)) / (2 * pi * K2 * L2) + K0(ra * sqrt(s * Sc1 / K1)) / (2 * pi * K1 * L1))
@@ -123,8 +133,34 @@ function avciflow(Qw::Number, K1::Number, K2::Number, L1::Number, L2::Number, Sc
 	return Linv.linv(s->laplaceavciflow(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah, s), stehfestcoefficients, t)
 end
 
+#the next three functions give the head buildup in the upper aquifer
+function laplaceavcideltahead1(Qw::Number, K1::Number, K2::Number, L1::Number, L2::Number, Sc1::Number, Sc2::Number, ra::Number, R::Number, omega::Number, deltah::Number, r1::Number, s::Number)
+	return laplaceavciflow(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah, s) * K0(r1 * sqrt(s * Sc1 / K1)) / (2 * pi * K1 * L1)
+end
+
+function makeavcideltahead1(Qw::Number, K1::Number, K2::Number, L1::Number, L2::Number, Sc1::Number, Sc2::Number, ra::Number, R::Number, omega::Number, deltah::Number, r1::Number)
+	return Linv.makelaplaceinverse(s->laplaceavcideltahead1(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah, r1, s))
+end
+
+function avcideltahead1(Qw::Number, K1::Number, K2::Number, L1::Number, L2::Number, Sc1::Number, Sc2::Number, ra::Number, R::Number, omega::Number, deltah::Number, r1::Number, t::Number)
+	return Linv.linv(s->laplaceavcideltahead1(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah, r1, s), stehfestcoefficients, t)
+end
+
+#the next three functions give the head buildup in the lower aquifer
+function laplaceavcideltahead2(Qw::Number, K1::Number, K2::Number, L1::Number, L2::Number, Sc1::Number, Sc2::Number, ra::Number, R::Number, omega::Number, deltah::Number, r2::Number, rw::Number, s::Number)
+	return -laplaceavciflow(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah, s) * K0(r2 * sqrt(s * Sc2 / K2)) / (2 * pi * K2 * L2) + Qw * K0(r2 * sqrt(s * Sc2 / K2)) / (2 * pi * K2 * L2 * s)
+end
+
+function makeavcideltahead2(Qw::Number, K1::Number, K2::Number, L1::Number, L2::Number, Sc1::Number, Sc2::Number, ra::Number, R::Number, omega::Number, deltah::Number, r2::Number, rw::Number)
+	return Linv.makelaplaceinverse(s->laplaceavcideltahead2(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah, r2, rw, s))
+end
+
+function avcideltahead2(Qw::Number, K1::Number, K2::Number, L1::Number, L2::Number, Sc1::Number, Sc2::Number, ra::Number, R::Number, omega::Number, deltah::Number, r2::Number, rw::Number, t::Number)
+	return Linv.linv(s->laplaceavcideltahead2(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah, r2, rw, s), stehfestcoefficients, t)
+end
+
 function runavcitests()
-	Qw = 0 #m^3/sec
+	Qw = .1 #m^3/sec
 	K1 = 1e-3 #m/sec -- pervious
 	K2 = 1e-5 #m/sec -- semi-pervious
 	L1 = 100 #m
@@ -133,18 +169,27 @@ function runavcitests()
 	Sc2 = 1e-5 #m^-1 -- fissured rock
 	ra = .1 #m
 	R = 100 #m
-	omega = 0 #no resistance
-	deltah = -100 #m
+	omega = 1e3 #no resistance
+	deltah = 0 #m
+	r1 = 50 #m
+	r2 = 100 #m
+	rw = 25 #m
 
 	af = makeavciflow(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah)
+	adh1 = makeavcideltahead1(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah, r1)
+	adh2 = makeavcideltahead2(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah, r2, rw)
 
 	#println(map(af, 3600:3600:3600*24))
 	t = 3600:3600*24*365:3600*24*365*10
 	vals = map(af, t)
+	dh1s = map(adh1, t)
+	dh2s = map(adh2, t)
 	for i in 1:size(t)[1]
 		time = t[i]
 		v = vals[i]
-		println("$time: $v")
+		dh1 = dh1s[i]
+		dh2 = dh2s[i]
+		println("$time: $v, $dh1, $dh2")
 	end
 end
 
