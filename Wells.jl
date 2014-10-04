@@ -4,7 +4,7 @@ using Linv
 
 stehfestcoefficients = Linv.getstehfestcoefficients()
 
-function makedrawdownwithconstantheadboundary(drawdown::Function)
+function makedrawdownwithconstantheadboundary(drawdown::Function) # constant head boundary
 	return (R::Number, args...)->begin
 		t = args[1]
 		r = args[2]
@@ -13,7 +13,7 @@ function makedrawdownwithconstantheadboundary(drawdown::Function)
 	end
 end
 
-function makedrawdownwithzerofluxboundary(drawdown::Function)
+function makedrawdownwithzerofluxboundary(drawdown::Function) # zero flux boundary
 	return (R::Number, args...)->begin
 		t = args[1]
 		r = args[2]
@@ -22,7 +22,7 @@ function makedrawdownwithzerofluxboundary(drawdown::Function)
 	end
 end
 
-function Ei(u::Number)
+function Ei(u::Number) # Thies function
 	if( u > 60 || u <= 0 )
 		return 0.0
 	end
@@ -36,8 +36,8 @@ function Ei(u::Number)
 	end
 end
 
-# The Hantush Function W
-# The function is calculated by logarithmic integration using Simpson's rule
+# Hantush Function W
+# calculated by logarithmic integration using Simpson's rule
 # source: W.Kinzelbach - Groundwater modelling
 function Whantush( ra::Number, rb::Number )
         if( ra < 1e-20 )
@@ -68,12 +68,12 @@ function Whantush( ra::Number, rb::Number )
         return hi * ( exp( - exp( ug ) - sub1 / exp( ug ) ) + 4 * s4 + 2 * s2 + exp( - exp( og ) - sub1 / exp( og ) ) ) / 3
 end
 
-function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Q::Number)
+function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Q::Number) # constant pumping rate
 	u = r ^ 2 * S / (4 * T * t)
 	return Q * Ei(u) / (4 * pi * T)
 end
 
-function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Qt::Matrix)
+function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Qt::Matrix) # step-wise changes in the pumping rate
 	dd = 0.
 	Qprev = 0.
 	Q = Qt[1, 1:end]
@@ -86,6 +86,8 @@ function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Qt::Matrix)
 	end
 	return dd
 end
+
+#TODO we need to add the laplace solution for any functional form of the pumping rate (currently in well.c)
 
 function runtheistests()
 	T = 100
@@ -105,7 +107,7 @@ end
 
 # runtheistests()
 
-function K0(x::Number)
+function K0(x::Number) # zerorh order bessel function of second kind
 	return besselk(0, x)
 end
 
@@ -180,7 +182,7 @@ function runavcitests()
 	adh2 = makeavcideltahead2(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah, r2, rw)
 
 	# println(map(af, 3600:3600:3600*24))
-	t = 3600:3600*24*365:3600*24*365*10
+	t = 3600:3600*24*365:3600*24*365*10 # time in seconds; range from 1 hour to 10 years for every year
 	vals = map(af, t)
 	dh1s = map(adh1, t)
 	dh2s = map(adh2, t)
