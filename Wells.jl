@@ -2,6 +2,73 @@ module Wells
 
 using Linv
 
+WellsD = [
+"O-4"=>(499060.43,540408.91),
+"PM-1"=>(502229.4,538920.57),
+"PM-2"=>(498865.4,536571.86),
+"PM-3"=>(500661.43,539352.74),
+"PM-4"=>(498537.89,537892.75),
+"PM-5"=>(497467.13,538822.39)
+]
+WellsQ = [
+"O-4" =>[0 2000;  50  500; 110 0; 300 1000],
+"PM-1"=>[0 1000;  50  200; 120 0; 310 2000],
+"PM-2"=>[0 0;    100 2000; 240 0; 320 3000],
+"PM-3"=>[0 0;    110 2000; 230 0; 330 4000],
+"PM-4"=>[0 0;    120 2000; 220 0; 340 5000],
+"PM-5"=>[0 2000; 150 2000; 210 0; 350 6000]
+]
+Points = [
+"R-1"=>(497542,539374),
+"R-11"=>(499860,539299),
+"R-13"=>(500174,538580),
+"R-15"=>(498442,538969),
+"R-28"=>(499564,538996),
+"R-33"=>(497861,539049),
+"R-34"=>(500968,537676),
+"R-35a"=>(500581,539286),
+"R-36"=>(501063,538806),
+"R-42"=>(499174,539123),
+"R-43"=>(499030,539379),
+"R-44"=>(499891,538615),
+"R-45"=>(499948,538892),
+"R-50"=>(499465,538608),
+"R-61"=>(498987,538710),
+"R-62"=>(498512,539326)
+]
+time = 0:1:365*2 # days; two years in total
+T = 100 # m2/d
+S = 0.02 # -
+
+function solve(WellsD::Dict, WellsQ::Dict, Points::Dict, time::StepRange, T::Number, S::Number)
+	for i in keys(WellsD)
+		println("Pumping well ", i, " x = ", WellsD[i][1], " y = ", WellsD[i][2] )
+	end
+	for i in keys(WellsD)
+		println("Pumping well ", i, " Q = ", WellsQ[i] )
+	end
+	dd = Dict()
+	for i in keys(Points)
+		println("Observation well ", i, " x = ", Points[i][1], " y = ", Points[i][2] )
+		dd[i] = 0
+	end
+	println( dd )
+	for p in keys(Points)
+		for w in keys(WellsD)
+		    	r = sqrt( ( WellsD[w][1] - Points[p][1] )^2 + ( WellsD[w][2] - Points[p][2] )^2 )
+			println( "Observation well ", p, " Pumping well ", w )
+			println( "Distrance = ", r )
+			dd[p] = Float64[]
+        		for t in 1:size(time)[1]
+				push!(dd[p],Wells.theisdrawdown(time[t], r, T, S, WellsQ[w]))
+			end
+			println( "Max DD = ", maximum(dd[p]) )
+			# println( dd[p] )
+		end
+        end
+	return dd
+end
+
 stehfestcoefficients = Linv.getstehfestcoefficients()
 
 function makedrawdownwithconstantheadboundary(drawdown::Function) # constant head boundary
