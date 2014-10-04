@@ -73,13 +73,15 @@ function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Q::Number) # 
 	return Q * Ei(u) / (4 * pi * T)
 end
 
-function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Qt::Matrix) # step-wise changes in the pumping rate
+function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Qm::Matrix) # step-wise changes in the pumping rate
 	dd = 0.
 	Qprev = 0.
-	Q = Qt[1, 1:end]
-	Qtime = Qt[2, 1:end]
+	Qtime = Qm[1:end, 1] # first time
+	Q = Qm[1:end, 2] # next pumping rate
+	# println( "time ", Qtime )
+	# println( "rate ", Q )
 	i = 1
-	while i <= size(Qtime)[2] && t > Qtime[i]
+	while i <= size(Qtime)[1] && t > Qtime[i]
 		dd += theisdrawdown(t - Qtime[i], r, T, S, Q[i] - Qprev)
 		Qprev = Q[i]
 		i += 1
