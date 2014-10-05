@@ -11,12 +11,12 @@ WellsD = [
 "PM-5"=>(497467.13,538822.39)
 ]
 WellsQ = [
-"O-4" =>[0 2000;  50  500; 110 0; 300 1000],
-"PM-1"=>[0 1000;  50  200; 120 0; 310 2000],
-"PM-2"=>[0 0;    100 2000; 240 0; 320 3000],
-"PM-3"=>[0 0;    110 2000; 230 0; 330 4000],
-"PM-4"=>[0 0;    120 2000; 220 0; 340 5000],
-"PM-5"=>[0 2000; 150 2000; 210 0; 350 6000]
+"O-4" =>[0 6000; 160  200; 250 0; 400 1000],
+"PM-1"=>[0 4000; 180  500; 300 0; 450 2000],
+"PM-2"=>[0 0;     80 2000; 350 0; 500 3000],
+"PM-3"=>[0 0;    120 2000; 400 0; 550 4000],
+"PM-4"=>[0 0;    140 2000; 450 0; 600 5000],
+"PM-5"=>[0 2000; 380  500; 500 0; 650 6000]
 ]
 Points = [
 "R-1"=>(497542,539374),
@@ -54,17 +54,19 @@ function solve(WellsD::Dict, WellsQ::Dict, Points::Dict, time::StepRange, T::Num
 	end
 	println( dd )
 	for p in keys(Points)
+		dd[p] = zeros(Float64,size(time)[1])
 		for w in keys(WellsD)
 		    	r = sqrt( ( WellsD[w][1] - Points[p][1] )^2 + ( WellsD[w][2] - Points[p][2] )^2 )
-			println( "Observation well ", p, " Pumping well ", w )
-			println( "Distrance = ", r )
-			dd[p] = Float64[]
+			d = Array(Float64,size(time)[1])
         		for t in 1:size(time)[1]
-				push!(dd[p],Wells.theisdrawdown(time[t], r, T, S, WellsQ[w]))
+				d[t] = Wells.theisdrawdown(time[t], r, T, S, WellsQ[w])
+				dd[p][t] += d[t]
 			end
-			println( "Max DD = ", maximum(dd[p]) )
-			# println( dd[p] )
+			println( "Observation well ", p, " Pumping well ", w, " Distrance = ", r , " Max DD = ", maximum(d))
+			# println( d )
 		end
+		println( "Observation well ", p, " -> TOTAL Max DD = ", maximum(dd[p]) )
+		# println( dd[p] )
         end
 	return dd
 end
@@ -136,11 +138,13 @@ function Whantush( ra::Number, rb::Number )
 end
 
 function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Q::Number) # constant pumping rate
+	if t <= 0 return 0. end
 	u = r ^ 2 * S / (4 * T * t)
 	return Q * Ei(u) / (4 * pi * T)
 end
 
 function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Qm::Matrix) # step-wise changes in the pumping rate
+	if t <= 0 return 0. end
 	dd = 0.
 	Qprev = 0.
 	Qtime = Qm[1:end, 1] # first time
