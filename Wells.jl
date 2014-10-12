@@ -41,34 +41,66 @@ T = 100 # m2/d
 S = 0.02 # -
 
 function solve(WellsD::Dict, WellsQ::Dict, Points::Dict, time::StepRange, T::Number, S::Number)
-	for i in keys(WellsD)
-		println("Pumping well ", i, " x = ", WellsD[i][1], " y = ", WellsD[i][2] )
+	for w in keys(WellsD)
+		println("Pumping well ", w, " x = ", WellsD[w][1], " y = ", WellsD[w][2] )
 	end
-	for i in keys(WellsD)
-		println("Pumping well ", i, " Q = ", WellsQ[i] )
+	for w in keys(WellsD)
+		println("Pumping well ", w, " Q = ", WellsQ[w] )
 	end
-	dd = Dict()
-	for i in keys(Points)
-		println("Observation well ", i, " x = ", Points[i][1], " y = ", Points[i][2] )
-		dd[i] = 0
-	end
-	println( dd )
+	dT = Dict()
+	dW = Dict()
 	for p in keys(Points)
-		dd[p] = zeros(Float64,size(time)[1])
+		println("Observation well ", p, " x = ", Points[p][1], " y = ", Points[p][2] )
+		dT[p] = 0
+	end
+	# println( dT )
+	nTime = size(time)[1]
+	for p in keys(Points)
+		dT[p] = zeros(Float64,nTime)
 		for w in keys(WellsD)
 		    	r = sqrt( ( WellsD[w][1] - Points[p][1] )^2 + ( WellsD[w][2] - Points[p][2] )^2 )
-			d = Array(Float64,size(time)[1])
-        		for t in 1:size(time)[1]
+			d = Array(Float64,nTime)
+        		for t in 1:nTime
 				d[t] = Wells.theisdrawdown(time[t], r, T, S, WellsQ[w])
-				dd[p][t] += d[t]
+				dT[p][t] += d[t]
 			end
+			dW[w] = d
 			println( "Observation well ", p, " Pumping well ", w, " Distrance = ", r , " Max DD = ", maximum(d))
 			# println( d )
 		end
-		println( "Observation well ", p, " -> TOTAL Max DD = ", maximum(dd[p]) )
-		# println( dd[p] )
+		println( "Observation well ", p, " -> TOTAL Max DD = ", maximum(dT[p]) )
+		# println( dT[p] )
         end
-	return dd
+	return dT
+end
+
+function solve(p::String, WellsD::Dict, WellsQ::Dict, Points::Dict, time::StepRange, T::Number, S::Number)
+	dW = Dict()
+	nTime = size(time)[1]
+	for w in keys(WellsD)
+		r = sqrt( ( WellsD[w][1] - Points[p][1] )^2 + ( WellsD[w][2] - Points[p][2] )^2 )
+		d = Array(Float64,nTime)
+		for t in 1:nTime
+			d[t] = Wells.theisdrawdown(time[t], r, T, S, WellsQ[w])
+		end
+		dW[w] = d
+		println( "Observation well ", p, " Pumping well ", w, " Distrance = ", r , " Max DD = ", maximum(d))
+	end
+	return dW
+end
+
+function solve(r::Number, WellsD::Dict, WellsQ::Dict, time::StepRange, T::Number, S::Number)
+	dW = Dict()
+	nTime = size(time)[1]
+	for w in keys(WellsD)
+		d = Array(Float64,nTime)
+		for t in 1:nTime
+			d[t] = Wells.theisdrawdown(time[t], r, T, S, WellsQ[w])
+		end
+		dW[w] = d
+		println( "Pumping well ", w, " Radius = ", r , " Max DD = ", maximum(d))
+	end
+	return dW
 end
 
 stehfestcoefficients = Linv.getstehfestcoefficients()
