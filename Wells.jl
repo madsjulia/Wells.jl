@@ -187,14 +187,12 @@ function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Qm::Matrix) #
 	if t <= 0 return 0. end
 	dd = 0.
 	Qprev = 0.
-	Qtime = Qm[1:end, 1] # first time
-	Q = Qm[1:end, 2] # next pumping rate
 	# println( "time ", Qtime )
 	# println( "rate ", Q )
 	i = 1
-	while i <= size(Qtime, 1) && t > Qtime[i]
-		dd += theisdrawdown(t - Qtime[i], r, T, S, Q[i] - Qprev)
-		Qprev = Q[i]
+	while i <= size(Qm, 1) && t > Qm[i, 1]
+		dd += theisdrawdown(t - Qm[i, 1], r, T, S, Qm[i, 2] - Qprev)
+		Qprev = Qm[i, 2]
 		i += 1
 	end
 	return dd
