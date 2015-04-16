@@ -62,7 +62,7 @@ function solve(WellsD::Dict, WellsQ::Dict, Points::Dict, time::StepRange, T::Num
 		dT[p] = 0
 	end
 	# println( dT )
-	nTime = size(time)[1]
+	nTime = size(time, 1)
 	for p in keys(Points)
 		dT[p] = zeros(Float64,nTime)
 		for w in keys(WellsD)
@@ -84,7 +84,7 @@ end
 
 function solve(p::String, WellsD::Dict, WellsQ::Dict, Points::Dict, time::StepRange, T::Number, S::Number)
 	dW = Dict()
-	nTime = size(time)[1]
+	nTime = size(time, 1)
 	for w in keys(WellsD)
 		r = sqrt( ( WellsD[w][1] - Points[p][1] )^2 + ( WellsD[w][2] - Points[p][2] )^2 )
 		d = Array(Float64,nTime)
@@ -99,7 +99,7 @@ end
 
 function solve(r::Number, WellsD::Dict, WellsQ::Dict, time::StepRange, T::Number, S::Number)
 	dW = Dict()
-	nTime = size(time)[1]
+	nTime = size(time, 1)
 	for w in keys(WellsD)
 		d = Array(Float64,nTime)
 		for t in 1:nTime
@@ -133,7 +133,7 @@ end
 
 function Ei(u::Number) # Thies function
 	if( u > 60 || u <= 0 )
-		return 0.0
+		return zero(u)#return a zero with the type of u
 	end
 	if u < 1
 		s1 = ((((0.00107857 * u - 0.00976004) * u + 0.05519968) * u - 0.24991055) * u + 0.99999193) * u - 0.57721566;
@@ -172,7 +172,7 @@ function Whantush( ra::Number, rb::Number )
                 end
                 x2 += sub2
                 s2 += exp( - exp( x2 ) - sub1 / exp( x2 ) )
-                i++
+                i += 1
         end
         return hi * ( exp( - exp( ug ) - sub1 / exp( ug ) ) + 4 * s4 + 2 * s2 + exp( - exp( og ) - sub1 / exp( og ) ) ) / 3
 end
@@ -192,7 +192,7 @@ function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Qm::Matrix) #
 	# println( "time ", Qtime )
 	# println( "rate ", Q )
 	i = 1
-	while i <= size(Qtime)[1] && t > Qtime[i]
+	while i <= size(Qtime, 1) && t > Qtime[i]
 		dd += theisdrawdown(t - Qtime[i], r, T, S, Q[i] - Qprev)
 		Qprev = Q[i]
 		i += 1
@@ -208,12 +208,12 @@ function runtheistests()
 	Q = 2
 	r = 10
 	t = 3600:3600*24*365:3600*24*365*10
-	for i in 1:size(t)[1]
+	for i in 1:size(t, 1)
 		println(theisdrawdown(t[i], r, T, S, Q))
 	end
 	theisdrawdownwithzerofluxboundary = makedrawdownwithzerofluxboundary(theisdrawdown)
 	R = map(i->i * r, 2:5)
-	for i in 1:size(t)[1]
+	for i in 1:size(t, 1)
 		println(map(R->theisdrawdownwithzerofluxboundary(R, t[i], r, T, S, Q), R))
 	end
 end
@@ -299,7 +299,7 @@ function runavcitests()
 	vals = map(af, t)
 	dh1s = map(adh1, t)
 	dh2s = map(adh2, t)
-	for i in 1:size(t)[1]
+	for i in 1:size(t, 1)
 		time = t[i]
 		v = vals[i]
 		dh1 = dh1s[i]
