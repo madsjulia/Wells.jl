@@ -18,14 +18,6 @@ WellsQ = [
 "PM-4"=>[0 0;    140 2000; 450 0; 600 5000],
 "PM-5"=>[0 2000; 380  500; 500 0; 650 6000]
 ]
-WellsQ = [
-"O-4" =>[0 10000; 50 0],
-"PM-1"=>[0 0; 100 10000; 150 0],
-"PM-2"=>[0 0; 200 10000; 250 0],
-"PM-3"=>[0 0; 300 10000; 350 0],
-"PM-4"=>[0 0; 400 10000; 450 0],
-"PM-5"=>[0 0; 500 10000; 550 0]
-]
 Points = [
 "R-1"=>(497542,539374),
 "R-11"=>(499860,539299),
@@ -46,7 +38,7 @@ Points = [
 ]
 time = 0:1:365*2 # days; two years in total
 T = 100 # m2/d
-S = 0.02 # -
+S = 1e-6 # -
 
 function solve(WellsD::Dict, WellsQ::Dict, Points::Dict, time::StepRange, T::Number, S::Number)
 	for w in keys(WellsD)
