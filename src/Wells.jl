@@ -74,7 +74,7 @@ function solve(WellsD::Dict, WellsQ::Dict, Points::Dict, time::StepRange, T::Num
 	return dT
 end
 
-function solve(p::String, WellsD::Dict, WellsQ::Dict, Points::Dict, time::StepRange, T::Number, S::Number)
+function solve(p::AbstractString, WellsD::Dict, WellsQ::Dict, Points::Dict, time::StepRange, T::Number, S::Number)
 	dW = Dict()
 	nTime = size(time, 1)
 	for w in keys(WellsD)
