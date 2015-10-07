@@ -2,23 +2,23 @@ module Wells
 
 using Linv
 
-WellsD = [
+WellsD = Dict(
 "O-4"=>(499060.43,540408.91),
 "PM-1"=>(502229.4,538920.57),
 "PM-2"=>(498865.4,536571.86),
 "PM-3"=>(500661.43,539352.74),
 "PM-4"=>(498537.89,537892.75),
 "PM-5"=>(497467.13,538822.39)
-]
-WellsQ = [
+)
+WellsQ = Dict(
 "O-4" =>[0 6000; 160  200; 250 0; 400 1000],
 "PM-1"=>[0 4000; 180  500; 300 0; 450 2000],
 "PM-2"=>[0 0;     80 2000; 350 0; 500 3000],
 "PM-3"=>[0 0;    120 2000; 400 0; 550 4000],
 "PM-4"=>[0 0;    140 2000; 450 0; 600 5000],
 "PM-5"=>[0 2000; 380  500; 500 0; 650 6000]
-]
-Points = [
+)
+Points = Dict(
 "R-1"=>(497542,539374),
 "R-11"=>(499860,539299),
 "R-13"=>(500174,538580),
@@ -35,7 +35,7 @@ Points = [
 "R-50"=>(499465,538608),
 "R-61"=>(498987,538710),
 "R-62"=>(498512,539326)
-]
+)
 time = 0:1:365*2 # days; two years in total
 T = 100 # m2/d
 S = 1e-6 # -
@@ -169,8 +169,39 @@ function Whantush( ra::Number, rb::Number )
         return hi * ( exp( - exp( ug ) - sub1 / exp( ug ) ) + 4 * s4 + 2 * s2 + exp( - exp( og ) - sub1 / exp( og ) ) ) / 3
 end
 
+#T is the transmissivity of the underlying aquifer
+#b and K are the thickness and hydraulic conductivity of the semi-confining bed through which leakage occurs
+function getleakance(T, b, K)
+	return sqrt(T * b / K)
+end
+
+#hantushleakydrawdown and Whantush2 are based on the methods described in "Hantush Well Function Revisited" by E.J.M. Veling and C. Maas (http://www.kwrwater.nl/uploadedFiles/Website_KWR_Waterware/Menyanthes/Hantush-template-JofH-submitted-R2-repos.pdf or doi:10.1016/j.jhydrol.2010.08.033)
+#leakance is also called the "leakage factor" (e.g., [Hantush, 1956]) or the "specific leakage" (e.g., [Hantush and Jacob, 1955])
+function hantushleakydrawdown(t::Real, r::Real, T::Real, S::Real, Q::Real, leakance::Real)
+	c = T * leakance ^ 2
+	rho = r / sqrt(T * c)
+	tau = log(2 * t / (rho * c * S))
+	drawdown = Q * Fhantush2(rho, tau) / (4 * pi * T)
+	return drawdown
+end
+
+function Fhantush2(rho::Real, tau::Real)
+	tau = min(tau, 100.)
+	hinf = besselk(0, rho)
+	expintrho = Ei(rho)
+	w = (expintrho - hinf) / (expintrho - Ei(.5 * rho))
+	I = hinf - w * Ei(.5 * rho * exp(abs(tau))) + (w - 1) * Ei(rho * cosh(tau))
+	if tau > 0
+		return hinf + I
+	elseif tau < 0
+		return hinf - I
+	end
+end
+
 function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Q::Number) # constant pumping rate
-	if t <= 0 return 0. end
+	if t <= 0
+		return 0.
+	end
 	u = r ^ 2 * S / (4 * T * t)
 	return Q * Ei(u) / (4 * pi * T)
 end
@@ -191,24 +222,6 @@ function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Qm::Matrix) #
 end
 
 #TODO we need to add the laplace solution for any functional form of the pumping rate (currently in well.c)
-
-function runtheistests()
-	T = 100
-	S = 0.02
-	Q = 2
-	r = 10
-	t = 3600:3600*24*365:3600*24*365*10
-	for i in 1:size(t, 1)
-		println(theisdrawdown(t[i], r, T, S, Q))
-	end
-	theisdrawdownwithzerofluxboundary = makedrawdownwithzerofluxboundary(theisdrawdown)
-	R = map(i->i * r, 2:5)
-	for i in 1:size(t, 1)
-		println(map(R->theisdrawdownwithzerofluxboundary(R, t[i], r, T, S, Q), R))
-	end
-end
-
-# runtheistests()
 
 function K0(x::Number) # zerorh order bessel function of second kind
 	return besselk(0, x)
@@ -263,41 +276,5 @@ end
 function avcideltahead2(Qw::Number, K1::Number, K2::Number, L1::Number, L2::Number, Sc1::Number, Sc2::Number, ra::Number, R::Number, omega::Number, deltah::Number, r2::Number, rw::Number, t::Number)
 	return Linv.linv(s->laplaceavcideltahead2(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah, r2, rw, s), stehfestcoefficients, t)
 end
-
-function runavcitests()
-	Qw = .1 # m^3/sec
-	K1 = 1e-3 # m/sec -- pervious
-	K2 = 1e-5 # m/sec -- semi-pervious
-	L1 = 100 # m
-	L2 = 200 # m
-	Sc1 = 7e-5 # m^-1 -- dense, sandy gravel
-	Sc2 = 1e-5 # m^-1 -- fissured rock
-	ra = .1 # m
-	R = 100 # m
-	omega = 1e3 # no resistance
-	deltah = 0 # m
-	r1 = 50 # m
-	r2 = 100 # m
-	rw = 25 # m
-
-	af = makeavciflow(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah)
-	adh1 = makeavcideltahead1(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah, r1)
-	adh2 = makeavcideltahead2(Qw, K1, K2, L1, L2, Sc1, Sc2, ra, R, omega, deltah, r2, rw)
-
-	# println(map(af, 3600:3600:3600*24))
-	t = 3600:3600*24*365:3600*24*365*10 # time in seconds; range from 1 hour to 10 years for every year
-	vals = map(af, t)
-	dh1s = map(adh1, t)
-	dh2s = map(adh2, t)
-	for i in 1:size(t, 1)
-		time = t[i]
-		v = vals[i]
-		dh1 = dh1s[i]
-		dh2 = dh2s[i]
-		println("$time: $v, $dh1, $dh2")
-	end
-end
-
-# runavcitests()
 
 end
