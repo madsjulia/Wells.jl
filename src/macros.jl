@@ -1,5 +1,5 @@
 macro timedep(timesymbol, ratesymbol, funcdef)
-	qmsymbol = gensym()
+	qmsymbol = ratesymbol
 	qprevsymbol = gensym()
 	ddsymbol = gensym()
 	isymbol = gensym()

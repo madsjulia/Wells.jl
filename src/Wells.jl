@@ -198,6 +198,8 @@ function Fhantush2(rho::Real, tau::Real)
 		return hinf + I
 	elseif tau < 0
 		return hinf - I
+	else
+		return hinf
 	end
 end
 
