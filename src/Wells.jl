@@ -1,6 +1,9 @@
 module Wells
 
 using Linv
+import MetaProgTools
+
+include("macros.jl")
 
 WellsD = Dict(
 "O-4"=>(499060.43,540408.91),
@@ -177,7 +180,7 @@ end
 
 #hantushleakydrawdown and Whantush2 are based on the methods described in "Hantush Well Function Revisited" by E.J.M. Veling and C. Maas (http://www.kwrwater.nl/uploadedFiles/Website_KWR_Waterware/Menyanthes/Hantush-template-JofH-submitted-R2-repos.pdf or doi:10.1016/j.jhydrol.2010.08.033)
 #leakance is also called the "leakage factor" (e.g., [Hantush, 1956]) or the "specific leakage" (e.g., [Hantush and Jacob, 1955])
-function hantushleakydrawdown(t::Real, r::Real, T::Real, S::Real, Q::Real, leakance::Real)
+@timedep t Q function hantushleakydrawdown(t::Real, r::Real, T::Real, S::Real, Q::Real, leakance::Real)
 	c = T * leakance ^ 2
 	rho = r / sqrt(T * c)
 	tau = log(2 * t / (rho * c * S))
@@ -198,7 +201,7 @@ function Fhantush2(rho::Real, tau::Real)
 	end
 end
 
-function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Q::Number) # constant pumping rate
+@timedep t Q function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Q::Number) # constant pumping rate
 	if t <= 0
 		return 0.
 	end
@@ -206,7 +209,7 @@ function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Q::Number) # 
 	return Q * Ei(u) / (4 * pi * T)
 end
 
-function theisdrawdown(t::Number, r::Number, T::Number, S::Number, Qm::Matrix) # step-wise changes in the pumping rate
+function theisdrawdownmanual(t::Number, r::Number, T::Number, S::Number, Qm::Matrix) # step-wise changes in the pumping rate
 	if t <= 0 return 0. end
 	dd = 0.
 	Qprev = 0.

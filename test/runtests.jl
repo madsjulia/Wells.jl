@@ -52,5 +52,21 @@ function hantushlimittest()
 	end
 end
 
+function timedepmacrotest()
+	T = 100
+	S = 0.02
+	Q = 2
+	r = 10
+	Qm = Array(Float64, T, 2)
+	for i = 1:size(Qm, 1)
+		Qm[i, 1] = i#set the time
+		Qm[i, 2] = 1 + 0.5 * randn()
+	end
+	for t in linspace(0, T, 2 * T)
+		@test Wells.theisdrawdown(t, r, T, S, Qm) == Wells.theisdrawdownmanual(t, r, T, S, Qm)
+	end
+end
+
 runmonotonicitytest()
 hantushlimittest()
+timedepmacrotest()
