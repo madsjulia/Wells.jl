@@ -65,12 +65,6 @@ function timedepmacrotest()
 	for t in linspace(0, T, 2 * T)
 		@test Wells.theisdrawdown(t, r, T, S, Qm) == Wells.theisdrawdownmanual(t, r, T, S, Qm)
 	end
-	@time for t in linspace(0, T, 2 * T * 1000)
-		Wells.theisdrawdown(t, r, T, S, Qm)
-	end
-	@time for t in linspace(0, T, 2 * T * 1000)
-		Wells.theisdrawdownmanual(t, r, T, S, Qm)
-	end
 end
 
 runmonotonicitytest()
