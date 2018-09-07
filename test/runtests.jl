@@ -48,7 +48,7 @@ function hantushlimittest()
 	lambda = 1e6#theis and leakyhantush should be the same for large lambda
 	ts = 0:3600*24:3600*24*365*10
 	for t in ts
-		@test_approx_eq_eps Wells.theisdrawdown(t, r, T, S, Q) Wells.hantushleakydrawdown(t, r, T, S, Q, lambda) 1e-6
+		@test Wells.theisdrawdown(t, r, T, S, Q) ≈ Wells.hantushleakydrawdown(t, r, T, S, Q, lambda) atol=1e-6
 	end
 end
 
@@ -57,7 +57,7 @@ function timedepmacrotest()
 	S = 0.02
 	Q = 2
 	r = 10
-	Qm = Array(Float64, T, 2)
+	Qm = Array{Float64}(T, 2)
 	for i = 1:size(Qm, 1)
 		Qm[i, 1] = i#set the time
 		Qm[i, 2] = 1 + 0.5 * randn()

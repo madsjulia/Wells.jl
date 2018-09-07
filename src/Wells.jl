@@ -2,6 +2,7 @@ module Wells
 
 using Linv
 import MetaProgTools
+import SpecialFunctions
 
 include("macros.jl")
 
@@ -62,7 +63,7 @@ function solve(WellsD::Dict, WellsQ::Dict, Points::Dict, time::StepRange, T::Num
 		dT[p] = zeros(Float64,nTime)
 		for w in keys(WellsD)
 		    	r = sqrt( ( WellsD[w][1] - Points[p][1] )^2 + ( WellsD[w][2] - Points[p][2] )^2 )
-			d = Array(Float64,nTime)
+			d = Array{Float64}(nTime)
         		for t in 1:nTime
 				d[t] = Wells.theisdrawdown(time[t], r, T, S, WellsQ[w])
 				dT[p][t] += d[t]
@@ -82,7 +83,7 @@ function solve(p::AbstractString, WellsD::Dict, WellsQ::Dict, Points::Dict, time
 	nTime = size(time, 1)
 	for w in keys(WellsD)
 		r = sqrt( ( WellsD[w][1] - Points[p][1] )^2 + ( WellsD[w][2] - Points[p][2] )^2 )
-		d = Array(Float64,nTime)
+		d = Array{Float64}(nTime)
 		for t in 1:nTime
 			d[t] = Wells.theisdrawdown(time[t], r, T, S, WellsQ[w])
 		end
@@ -96,7 +97,7 @@ function solve(r::Number, WellsD::Dict, WellsQ::Dict, time::StepRange, T::Number
 	dW = Dict()
 	nTime = size(time, 1)
 	for w in keys(WellsD)
-		d = Array(Float64,nTime)
+		d = Array{Float64}(nTime)
 		for t in 1:nTime
 			d[t] = Wells.theisdrawdown(time[t], r, T, S, WellsQ[w])
 		end
@@ -190,7 +191,7 @@ end
 
 function Fhantush2(rho::Real, tau::Real)
 	tau = min(tau, 100.)
-	hinf = besselk(0, rho)
+	hinf = SpecialFunctions.besselk(0, rho)
 	expintrho = Ei(rho)
 	w = (expintrho - hinf) / (expintrho - Ei(.5 * rho))
 	I = hinf - w * Ei(.5 * rho * exp(abs(tau))) + (w - 1) * Ei(rho * cosh(tau))
@@ -229,7 +230,7 @@ end
 #TODO we need to add the laplace solution for any functional form of the pumping rate (currently in well.c)
 
 function K0(x::Number) # zerorh order bessel function of second kind
-	return besselk(0, x)
+	return SpecialFunctions.besselk(0, x)
 end
 
 # avci parameters -- note that 1 refers to the upper aquifer and 2 refers to the lower aquifer
