@@ -1,4 +1,4 @@
-Wells.jl (ulti-well variable-rate pumping-test analysis tool)
+Wells.jl (multi-well variable-rate pumping-test analysis tool)
 =======================================
 
 * Wells.jl is a Julia code for multi-well variable-rate pumping test analysis based on analytical methods.
