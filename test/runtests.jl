@@ -1,6 +1,23 @@
 import Wells
 using Base.Test
 
+function runlinvtests()
+	F1(s) = 1 / sqrt(s)
+	f1(t) = 1 / sqrt(pi * t)
+	F2(s) = log(s) / s
+	f2(t) = -0.5772156649015328606065120 - log(t)
+	F3(s) = 1 / s ^ 4
+	f3(t) = t ^ 3 / 6
+	F4(s) = 1 / (s + 1)
+	f4(t) = exp(-t)
+	F5(s) = sqrt(pi / (2 * s ^ 3)) * exp(-1 / (2 * s))
+	f5(t) = sin(sqrt(2 * t))
+	for (F, f) in zip([F1, F2, F3, F4, F5], [f1, f2, f3, f4, f5])
+		Finv = Wells.Linv.makelaplaceinverse(F)
+		@test abs(max(map(x->f(x)-Finv(x), 1:10)...)) < 1e-5
+	end
+end
+
 function runmonotonicitytest()
 	T = 100
 	S = 0.02
@@ -67,6 +84,7 @@ function timedepmacrotest()
 	end
 end
 
+runlinvtests()
 runmonotonicitytest()
 hantushlimittest()
 timedepmacrotest()

@@ -1,9 +1,9 @@
 module Wells
 
-using Linv
 import MetaProgTools
 import SpecialFunctions
 
+include("Linv.jl")
 include("macros.jl")
 
 WellsD = Dict(
