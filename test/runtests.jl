@@ -1,5 +1,5 @@
 import Wells
-using Base.Test
+import Test
 
 function runlinvtests()
 	F1(s) = 1 / sqrt(s)
@@ -14,7 +14,7 @@ function runlinvtests()
 	f5(t) = sin(sqrt(2 * t))
 	for (F, f) in zip([F1, F2, F3, F4, F5], [f1, f2, f3, f4, f5])
 		Finv = Wells.Linv.makelaplaceinverse(F)
-		@test abs(max(map(x->f(x)-Finv(x), 1:10)...)) < 1e-5
+		@Test.test abs(max(map(x->f(x)-Finv(x), 1:10)...)) < 1e-5
 	end
 end
 
@@ -51,7 +51,7 @@ function runmonotonicitytest()
 	for t in ts
 		for j = 1:length(fs)
 			thisdrawdown = fs[j](t)
-			@test thisdrawdown >= lastdrawdowns[j]
+			@Test.test thisdrawdown >= lastdrawdowns[j]
 			lastdrawdowns[j] = thisdrawdown
 		end
 	end
@@ -65,7 +65,7 @@ function hantushlimittest()
 	lambda = 1e6#theis and leakyhantush should be the same for large lambda
 	ts = 0:3600*24:3600*24*365*10
 	for t in ts
-		@test Wells.theisdrawdown(t, r, T, S, Q) ≈ Wells.hantushleakydrawdown(t, r, T, S, Q, lambda) atol=1e-6
+		@Test.test Wells.theisdrawdown(t, r, T, S, Q) ≈ Wells.hantushleakydrawdown(t, r, T, S, Q, lambda) atol=1e-6
 	end
 end
 
@@ -74,13 +74,13 @@ function timedepmacrotest()
 	S = 0.02
 	Q = 2
 	r = 10
-	Qm = Array{Float64}(T, 2)
+	Qm = Array{Float64}(undef, T, 2)
 	for i = 1:size(Qm, 1)
 		Qm[i, 1] = i#set the time
 		Qm[i, 2] = 1 + 0.5 * randn()
 	end
-	for t in linspace(0, T, 2 * T)
-		@test Wells.theisdrawdown(t, r, T, S, Qm) == Wells.theisdrawdownmanual(t, r, T, S, Qm)
+	for t in range(0; length=101, step=2)
+		@Test.test Wells.theisdrawdown(t, r, T, S, Qm) == Wells.theisdrawdownmanual(t, r, T, S, Qm)
 	end
 end
 

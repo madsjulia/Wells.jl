@@ -63,7 +63,7 @@ function solve(WellsD::Dict, WellsQ::Dict, Points::Dict, time::StepRange, T::Num
 		dT[p] = zeros(Float64,nTime)
 		for w in keys(WellsD)
 		    	r = sqrt( ( WellsD[w][1] - Points[p][1] )^2 + ( WellsD[w][2] - Points[p][2] )^2 )
-			d = Array{Float64}(nTime)
+			d = Array{Float64}(undef, nTime)
         		for t in 1:nTime
 				d[t] = Wells.theisdrawdown(time[t], r, T, S, WellsQ[w])
 				dT[p][t] += d[t]
@@ -83,7 +83,7 @@ function solve(p::AbstractString, WellsD::Dict, WellsQ::Dict, Points::Dict, time
 	nTime = size(time, 1)
 	for w in keys(WellsD)
 		r = sqrt( ( WellsD[w][1] - Points[p][1] )^2 + ( WellsD[w][2] - Points[p][2] )^2 )
-		d = Array{Float64}(nTime)
+		d = Array{Float64}(undef, nTime)
 		for t in 1:nTime
 			d[t] = Wells.theisdrawdown(time[t], r, T, S, WellsQ[w])
 		end
@@ -97,7 +97,7 @@ function solve(r::Number, WellsD::Dict, WellsQ::Dict, time::StepRange, T::Number
 	dW = Dict()
 	nTime = size(time, 1)
 	for w in keys(WellsD)
-		d = Array{Float64}(nTime)
+		d = Array{Float64}(undef, nTime)
 		for t in 1:nTime
 			d[t] = Wells.theisdrawdown(time[t], r, T, S, WellsQ[w])
 		end

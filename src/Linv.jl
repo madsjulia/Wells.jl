@@ -1,7 +1,7 @@
 module Linv
 
 function getstehfestcoefficients(N::Int64=18)
-	V = Array{Float64}(N)
+	V = Array{Float64}(undef, N)
 	for i = 1:N
 		V[i] = 0.
 		for k = floor(Int, (i + 1) / 2):min(i, fld(N, 2))

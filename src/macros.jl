@@ -11,7 +11,7 @@ macro timedep(timesymbol, ratesymbol, funcdef)
 			timedepfuncdef.args[1].args[i + 1] = :($qmsymbol::Matrix)
 		end
 	end
-	innerloopargs = Array{Any}(length(argsymbols))
+	innerloopargs = Array{Any}(undef, length(argsymbols))
 	for i = 1:length(argsymbols)
 		if argsymbols[i] == ratesymbol
 			innerloopargs[i] = :($qmsymbol[$isymbol, 2] - $qprevsymbol)
